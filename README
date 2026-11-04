@@ -1,0 +1,107 @@
+ox-crt - README
+
+Copyright (C) 2026 OXlatorty
+
+This project is under Apache License 2.0
+There is own implementation of C RUNTIME (CRT).
+
+=============================================================[ Project Info ]=============================================================
+
+Modules:
+  - ox-crt-defines <-- defining uintptr_t without stdint.h
+  - ox-crt-syscall <-- syscalls from 1 arg to 5, in C and __asm__ volatile
+  - ox-crt-start   <-- entry point (main() caller), in C and __asm__
+
+Build:
+  - Linux x86_64:
+      -> ./make-all.x86_64.sh
+      )> or directly: make -f "Makefiles/Makefile.ox-crt.posix.x86_64.mak" all
+  - Windows x86_64
+      -> make-all.x86_64.bat
+      )> or directly: make -f "Makefiles/Makefile.ox-crt.windows.x86_64.mak" all
+  - Linux x86
+      -> ./make-all.x86.sh
+      )> or directly: make -f "Makefiles/Makefile.ox-crt.posix.x86.mak" all
+  - Windows x86
+      -> make-all.x86.bat
+      )> or directly: make -f "Makefiles/Makefile.ox-crt.windows.x86.mak" all
+
+  Out files should be in obj/ directory
+
+Supported Platforms:
+  - Posix x86
+  - Posix x86_64
+  - Windows x86
+  - Windows x86_64
+
+ATTENTION FOR WINDOWS USERS: 
+  Windows doesn't have stable kernel ABI, this is why you should correct syscalls in start func for your Windows version.
+
+=============================================================[ Usage Example ]=============================================================
+
+First copy compiled (OX-)CRT from obj/ into your workspace folder.
+
+For Posix x86 or x86_64 create main.c file
+
+```
+int main(int argc, char** argv, char** envp) {
+  return 42; 
+}
+```
+
+For Windows x86 or x86_64 create main.c file
+
+```
+int main(int argc, char** argv) {
+  return 42;
+}
+```
+
+ATTENTION: There is 42 for example, you can change it on your own number to check later.
+
+Compilation for Posix x86
+
+```
+clang -m32 -c main.c -o main.o -DOX_CRT_POSIX_X86 -ffreestanding -fno-builtin
+clang -m32 -nostdlib -e ox_crt_start main.o ox-crt-start.o ox-crt-syscall.o -o my_program
+```
+
+Compilation for Posix x86_64
+
+```
+clang -c main.c -o main.o -DOX_CRT_POSIX_X86_64 -ffreestanding -fno-builtin
+clang -nostdlib -e ox_crt_start main.o ox-crt-start.o ox-crt-syscall.o -o my_program
+```
+
+Compilation for Windows x86
+
+```
+clang --target=x86-pc-windows-msvc -c main.c -o main.obj -DOX_CRT_WINDOWS_X86 -ffreestanding -fno-builtin
+clang --target=x86-pc-windows-msvc -nostdlib -Wl,/entry:ox_crt_start main.obj ox-crt-start.o ox-crt-syscall.o -o my_program.exe
+```
+
+Compilation for Windows x86_64
+
+```
+clang --target=x86_64-pc-windows-msvc -c main.c -o main.obj -DOX_CRT_WINDOWS_X86_64 -ffreestanding -fno-builtin
+clang --target=x86_64-pc-windows-msvc -nostdlib -Wl,/entry:ox_crt_start main.obj ox-crt-start.o ox-crt-syscall.o -o my_program.exe
+```
+
+Test run on Posix x86 or x86_64
+
+```
+./my_program
+echo $?
+```
+
+Test run on Windows x86 or x86_64
+
+```
+my_program.exe
+echo %ERRORLEVEL%
+```
+
+Should be return 42 or your specific number.
+
+And it is all, you successfully ran C code without libc.
+
